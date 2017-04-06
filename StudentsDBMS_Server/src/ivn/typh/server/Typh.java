@@ -1,48 +1,54 @@
 package ivn.typh.server;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class Typh {
-
+	
+	public static List<String> userList;
+	private static OS os;
+	private static String certPath = "C:\\Program Files\\MongoDB\\Server\\3.4\\bin\\cert\\server.pem";
+	private static String certPassword = "server";
+	
 	public static void main(String[] arg){
 		
-		int osFlag=9;
+		arg[1] = arg[1].replaceAll("\\\\", "\\\\\\\\");
+		userList = new ArrayList<String>();
 		
-		//		Linux or Windows
 		
-		System.out.println(Arrays.toString(arg));
 		if(System.getProperty("os.name").substring(0, 6).toLowerCase().matches("windows*"))
-			osFlag=1;
+			os=OS.WINDOWS;
 		else
-			osFlag=0;
-		
-		if(arg[0].equals("config") && arg.length==2){
-			if(!isServerRunning(osFlag)){
-			if(osFlag == 1)
-				startWServer(arg[1]);
-			else if(osFlag == 0)
-				startLServer(arg[1]);
-			}else{
-				System.out.println("ERROR:\t Server is already running");
-			}
-			
-		}else if(arg.length==1){
-	
+			os=OS.LINUX;
+
 			switch(arg[0]){
+			case "config":
+				if(arg.length==2){
+					if(!isServerRunning())
+						startServer(arg[1]);
+					else
+						System.out.println("ERROR:\t Server is already running");
+
+				}else{
+					System.out.println("ERROR: Invalid number of arguments\n Use \'help\' to list all options");
+				}
+				break;
 			case "stop-server":
-				if(isServerRunning(osFlag)){
-					stopServer(osFlag);
+				if(isServerRunning()){
+					stopServer();
 				}else{
 					System.out.println("ERROR:\t No server process found!");
 				}
 				break;
 			case "status":
-				serverStatus();
+				if(!isServerRunning())
+					serverStatus();
+				else
+					System.out.println("ERROR:\t Server is not running");
 				break;
 			case "help":
 				int numberOfCharacters = 85;
@@ -60,51 +66,63 @@ public class Typh {
 
 				break;
 			case "restart":
-				restartServer();
+				restartServer(arg[1]);
 				break;
 			default:
 				System.out.println("ERROR: Invalid argument");
 			}
-	}else{
-		System.out.println("ERROR: Invalid number of arguments\n Use \'help\' to list all options");
-	}
-		
 	}
 
-	private static void restartServer() {
-		// TODO Auto-generated method stub
+	private static void restartServer(String config) {
+		stopServer();
+		startServer(config);
+	}
+
+	private static void startServer(String config) {
+		if(os == OS.WINDOWS)
+			startWServer(config);
+		else if(os == OS.LINUX)
+			startLServer(config);
 		
 	}
 
 	private static void serverStatus() {
-		// TODO Auto-generated method stub
 		
-	}
-
-	private static void stopServer(int os) {
 		try {
-			if(os == 1){
-				Runtime.getRuntime().exec("cmd /c taskkill /f /im mongod.exe");
-			
-		}else{
-			
-			// For linux
-		}
+			Process stats = Runtime.getRuntime().exec("mongo --ssl --sslPEMKeyFile "+certPath+" --sslPEMKeyPassword "+certPassword+" --sslAllowInvalidHostnames --eval db.serverStatus()");
+			BufferedReader bf = new BufferedReader(new InputStreamReader(stats.getInputStream()));
+			String line = null;
+			while((line=bf.readLine()) != null){
+				System.out.println(line);
+			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	private static boolean isServerRunning(int flag) {
+	private static void stopServer() {
+		try {
+			if(os == OS.WINDOWS){
+				Runtime.getRuntime().exec("cmd /c taskkill /f /im mongod.exe");
+			
+		}else if(os == OS.LINUX){
+			
+			// For linux
+		}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	static boolean isServerRunning() {
 		boolean exist=false;
-		if(flag == 1){
+		if(os == OS.WINDOWS){
 			try {
 				String line;
 				Process process = Runtime.getRuntime().exec("tasklist");
 				BufferedReader bf = new BufferedReader(new InputStreamReader(process.getInputStream()));
 				while((line=bf.readLine())!=null){
-					if(line.matches("mongod*"))
+					if(line.matches("mongod.*"))
 						exist=true;
 				}
 			} catch (IOException e) {
@@ -112,10 +130,9 @@ public class Typh {
 				e.printStackTrace();
 			}
 			
-		}else{
+		}else if(os == OS.LINUX){
 			// For Linux
 		}
-		System.out.println("in server");
 		return exist;
 	}
 
@@ -125,13 +142,15 @@ public class Typh {
 
 	private static void startWServer(String config) {
 		try {
-			System.out.println("windows server\t"+config+"\t"+System.getProperty("user.dir"));
-			String[] arg = {"cmd.exe","/k", "mongod --config ",config};
-			Runtime.getRuntime().exec("cmd /c start mongod --config "+System.getProperty("user.dir")+"\\"+config);
-//			List<String> args = Arrays.asList("cmd","/k","start","mongod.bat");
-//			ProcessBuilder pb = new ProcessBuilder(args);
-//			pb.directory(new File(System.getProperty("user.dir")));
-//			pb.start();
+			
+			Thread user = new Thread(new HeartForUsers());
+			Thread admin = new Thread(new HeartForAdmin());
+				
+			user.start();
+			admin.start();
+			
+			Runtime.getRuntime().exec("cmd /k start mongod --config \""+config+"\"");
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
