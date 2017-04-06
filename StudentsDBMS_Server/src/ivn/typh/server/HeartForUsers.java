@@ -30,8 +30,10 @@ public class HeartForUsers implements Runnable {
 			while (Typh.isServerRunning()) {
 				client = server.accept();
 				HeartForAdmin.message="__BEAT__";
-				PrintWriter out = new PrintWriter(client.getOutputStream());
 				BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+				PrintWriter out = new PrintWriter(client.getOutputStream());
+	
+
 				String user_t = in.readLine();
 				if (!Typh.userList.contains(user_t))
 					Typh.userList.add(user_t);

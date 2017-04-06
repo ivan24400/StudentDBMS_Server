@@ -26,12 +26,15 @@ public class HeartForAdmin implements Runnable{
 
 	@Override
 	public void run() {
+		while(Typh.isServerRunning()){
 		try {
 			socket = server.accept();
 			System.out.println(socket.getRemoteSocketAddress());
 			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+		//	System.out.println("CLIENT User: after bufferedReader");
 			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-    		ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+			//System.out.println("CLIENT User: after bufferedReader");
+	ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
 
 			Runnable users = new Runnable(){
 
@@ -49,6 +52,8 @@ public class HeartForAdmin implements Runnable{
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
+						service.shutdownNow();
+
 						e.printStackTrace();
 					}
 					
@@ -60,6 +65,7 @@ public class HeartForAdmin implements Runnable{
 
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
 		}
 		
 	}
