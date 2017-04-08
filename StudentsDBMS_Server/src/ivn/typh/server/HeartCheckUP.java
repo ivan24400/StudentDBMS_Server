@@ -12,7 +12,6 @@ public class HeartCheckUP implements Runnable{
 			while(Typh.isServerRunning()){
 				server.accept();
 				server.close();
-
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
