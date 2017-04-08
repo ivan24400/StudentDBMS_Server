@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+
 public class HeartForAdmin implements Runnable{
 
 	private static ServerSocket server;
@@ -49,10 +50,9 @@ public class HeartForAdmin implements Runnable{
 						try {
 							socket.close();
 						} catch (IOException e1) {
-							e1.printStackTrace();
+		
 						}
 						service.shutdownNow();
-						e.printStackTrace();
 					}
 					
 				}

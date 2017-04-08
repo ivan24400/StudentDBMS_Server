@@ -1,9 +1,8 @@
 package ivn.typh.server;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Executors;
@@ -21,7 +20,7 @@ public class HeartForUsers implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-}
+	}
 
 	@Override
 	public void run() {
@@ -30,11 +29,11 @@ public class HeartForUsers implements Runnable {
 			while (Typh.isServerRunning()) {
 				client = server.accept();
 				HeartForAdmin.message="__BEAT__";
-				BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-				PrintWriter out = new PrintWriter(client.getOutputStream());
+				ObjectInputStream in = new ObjectInputStream(client.getInputStream());
+				ObjectOutputStream out = new ObjectOutputStream(client.getOutputStream());
 	
 
-				String user_t = in.readLine();
+				String user_t = (String) in.readObject();
 				if (!Typh.userList.contains(user_t))
 					Typh.userList.add(user_t);
 
@@ -43,19 +42,17 @@ public class HeartForUsers implements Runnable {
 				Runnable pulse = new Runnable() {
 					@Override
 					public void run() {
-						out.println(HeartForAdmin.message);
+						try {
+						
+						out.writeObject(HeartForAdmin.message);
 						out.flush();
-						//System.out.println("pulse: userHeart\t"+Typh.userList.toString());
 
-						if (out.checkError()){
-							if (Typh.userList.contains(user_t))
-								Typh.userList.remove(user_t);
-							try {
-								client.close();
 							} catch (IOException e) {
+								if (Typh.userList.contains(user_t))
+									Typh.userList.remove(user_t);
 								e.printStackTrace();
 							}
-						}
+
 						HeartForAdmin.message="__BEAT__";
 
 					}
@@ -64,7 +61,7 @@ public class HeartForUsers implements Runnable {
 
 				serviceU.scheduleAtFixedRate(pulse, 0, 5, TimeUnit.SECONDS);
 			}
-		} catch (IOException e) {
+		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 	}

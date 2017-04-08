@@ -178,6 +178,7 @@ public class Typh {
 				process = Runtime.getRuntime().exec("sc start typhserver");
 			
 
+			userList = new ArrayList<String>();
 			Thread user = new Thread(new HeartForUsers());
 			Thread admin = new Thread(new HeartForAdmin());
 			Thread check = new Thread(new HeartCheckUP());
