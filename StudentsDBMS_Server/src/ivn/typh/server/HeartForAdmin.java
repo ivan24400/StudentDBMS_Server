@@ -28,6 +28,8 @@ public class HeartForAdmin implements Runnable{
 	public void run() {
 		while(Typh.isServerRunning()){
 		try {
+			System.out.println("AdminHeart");
+
 			socket = server.accept();
 			System.out.println(socket.getRemoteSocketAddress());
 			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -38,7 +40,6 @@ public class HeartForAdmin implements Runnable{
 
 				@Override
 				public void run() {
-					System.out.println("pulse: adminHeart\t"+Typh.userList);
 
 					try {
 						out.writeObject(Typh.userList);

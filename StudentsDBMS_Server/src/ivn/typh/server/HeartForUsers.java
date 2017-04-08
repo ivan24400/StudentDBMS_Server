@@ -25,7 +25,7 @@ public class HeartForUsers implements Runnable {
 
 	@Override
 	public void run() {
-
+		System.out.println("UserHeart");
 		try {
 			while (Typh.isServerRunning()) {
 				client = server.accept();
@@ -45,7 +45,7 @@ public class HeartForUsers implements Runnable {
 					public void run() {
 						out.println(HeartForAdmin.message);
 						out.flush();
-						System.out.println("pulse: userHeart\t"+Typh.userList.toString());
+						//System.out.println("pulse: userHeart\t"+Typh.userList.toString());
 
 						if (out.checkError()){
 							if (Typh.userList.contains(user_t))
