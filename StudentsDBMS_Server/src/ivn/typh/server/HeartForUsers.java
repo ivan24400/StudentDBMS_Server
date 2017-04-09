@@ -24,7 +24,6 @@ public class HeartForUsers implements Runnable {
 
 	@Override
 	public void run() {
-		System.out.println("UserHeart");
 		try {
 			while (Typh.isServerRunning()) {
 				client = server.accept();
@@ -50,7 +49,6 @@ public class HeartForUsers implements Runnable {
 							} catch (IOException e) {
 								if (Typh.userList.contains(user_t))
 									Typh.userList.remove(user_t);
-								e.printStackTrace();
 							}
 
 						HeartForAdmin.message="__BEAT__";
@@ -61,9 +59,7 @@ public class HeartForUsers implements Runnable {
 
 				serviceU.scheduleAtFixedRate(pulse, 0, 5, TimeUnit.SECONDS);
 			}
-		} catch (IOException | ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+		} catch (IOException | ClassNotFoundException e) {	}
 	}
 
 }

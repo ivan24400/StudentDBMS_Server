@@ -1,6 +1,7 @@
 package ivn.typh.server;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -11,8 +12,9 @@ public class Typh {
 
 	public static List<String> userList;
 	private static OS os;
-	private static String certPath = System.getProperty("user.dir") + "\\cert\\server.pem";
-	private static String certPassword = "server";
+	private static final String certPath = System.getProperty("user.dir") + "\\cert\\server.pem";
+	private static final String certPassword = "server";
+	private static final String configFile = System.getProperty("user.dir")+"\\typh.cfg";
 
 	public static void main(String[] arg) {
 
@@ -25,8 +27,7 @@ public class Typh {
 		case "start":
 			if (arg.length == 3) {
 				arg[2] = arg[2].replaceAll("\\\\", "\\\\\\\\");
-				userList = new ArrayList<String>();
-				
+			
 				if (!isServerRunning())
 					startServer(arg[2]);
 				else
@@ -34,9 +35,13 @@ public class Typh {
 
 			} else if(arg.length == 1){
 
-				if (!isServerRunning())
-					startServer(System.getProperty("user.dir")+"\\typh.cfg");
-				else
+				if (!isServerRunning()){
+					File testtyph = new File(configFile);
+					if(testtyph.exists() && testtyph.isFile())
+						startServer(configFile);
+					else
+						System.out.println("ERROR:\tNo configuration file found");
+				}else
 					System.out.println("ERROR:\t Server is already running");
 
 			}else {
@@ -80,49 +85,6 @@ public class Typh {
 		}
 	}
 
-	private static void restartServer(String config) {
-		stopServer();
-		startServer(config);
-	}
-
-	private static void startServer(String config) {
-		if (os == OS.WINDOWS)
-			startWServer(config);
-		else if (os == OS.LINUX)
-			startLServer(config);
-
-	}
-
-	private static void serverStatus() {
-
-		try {
-			Process stats = Runtime.getRuntime().exec("mongo --ssl --sslPEMKeyFile " + certPath
-					+ " --sslPEMKeyPassword " + certPassword + " --sslAllowInvalidHostnames --eval db.serverStatus()");
-			BufferedReader bf = new BufferedReader(new InputStreamReader(stats.getInputStream()));
-			String line = null;
-			while ((line = bf.readLine()) != null) {
-				System.out.println(line);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private static void stopServer() {
-		try {
-			if (os == OS.WINDOWS) {
-				Runtime.getRuntime().exec("sc stop typhserver");
-
-			} else if (os == OS.LINUX) {
-
-				// For linux
-			}
-			System.out.println("INFO:\t Server stopped successfully");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
 	static boolean isServerRunning() {
 		boolean exist = false;
 		if (os == OS.WINDOWS) {
@@ -146,6 +108,50 @@ public class Typh {
 		return exist;
 	}
 
+	private static void restartServer(String config) {
+		stopServer();
+		startServer(config);
+	}
+
+	private static void startServer(String config) {
+		if (os == OS.WINDOWS)
+			startWServer(config);
+		else if (os == OS.LINUX)
+			startLServer(config);
+
+	}
+
+	private static void serverStatus() {
+
+		try {
+			Process stats = Runtime.getRuntime().exec("mongo --ssl --sslPEMKeyFile " + certPath
+					+ " --sslPEMKeyPassword " + certPassword + " --sslAllowInvalidHostnames --eval db.serverStatus()");
+			BufferedReader bf = new BufferedReader(new InputStreamReader(stats.getInputStream()));
+			//String line = null;
+			while ((bf.readLine()) != null) {
+				//System.out.println(line);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void stopServer() {
+		try {
+			if (os == OS.WINDOWS) {
+				Runtime.getRuntime().exec("cmd /c sc stop typhserver");
+
+			} else if (os == OS.LINUX) {
+
+				// For Linux
+			}
+			System.out.println("INFO:\t Server stopped successfully");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	
 	private static void startLServer(String config) {
 		// For Linux
 	}
@@ -173,17 +179,16 @@ public class Typh {
 
 				Thread.sleep(4000);
 
-				process = Runtime.getRuntime().exec("sc start typhserver");
+				process = Runtime.getRuntime().exec("cmd /c sc start typhserver");
 			} else
-				process = Runtime.getRuntime().exec("sc start typhserver");
+				process = Runtime.getRuntime().exec("cmd /c sc start typhserver");
 			
-
+			process.waitFor();
+			
 			userList = new ArrayList<String>();
 			Thread user = new Thread(new HeartForUsers());
 			Thread admin = new Thread(new HeartForAdmin());
 			Thread check = new Thread(new HeartCheckUP());
-//			user.setDaemon(true);
-//			admin.setDaemon(true);
 
 			user.start();
 			admin.start();

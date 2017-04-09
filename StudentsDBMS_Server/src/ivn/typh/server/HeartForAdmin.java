@@ -27,9 +27,9 @@ public class HeartForAdmin implements Runnable{
 
 	@Override
 	public void run() {
+
 		while(Typh.isServerRunning()){
 		try {
-			System.out.println("AdminHeart");
 
 			socket = server.accept();
 			System.out.println(socket.getRemoteSocketAddress());
