@@ -9,62 +9,53 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-
-public class HeartForAdmin implements Runnable{
+public class HeartForAdmin implements Runnable {
 
 	private static ServerSocket server;
 	private static Socket socket;
-	
+
 	public static String message;
-	
-	public HeartForAdmin(){
-		try {
-			server=new ServerSocket(61001);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 
 	@Override
 	public void run() {
-
-		while(Typh.isServerRunning()){
 		try {
+			server = new ServerSocket(PortList.ADMIN.port);
 
-			socket = server.accept();
-			System.out.println(socket.getRemoteSocketAddress());
-			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-			ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+			while (Typh.isServerRunning()) {
 
-			Runnable users = new Runnable(){
+				socket = server.accept();
+				System.out.println(socket.getRemoteSocketAddress());
+				ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+				ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+				ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
 
-				@Override
-				public void run() {
+				Runnable users = new Runnable() {
 
-					try {
-						out.writeObject(Typh.userList);
-						out.flush();
-						message = (String) in.readObject();
-					} catch (IOException | ClassNotFoundException e) {
+					@Override
+					public void run() {
+
 						try {
-							socket.close();
-						} catch (IOException e1) {
-		
-						}
-						service.shutdownNow();
-					}
-					
-				}
-				
-			};
-			
-			service.scheduleAtFixedRate(users,0,5,TimeUnit.SECONDS);
+							out.writeObject(Typh.userList);
+							out.flush();
+							message = (String) in.readObject();
+						} catch (IOException | ClassNotFoundException e) {
+							try {
+								socket.close();
+							} catch (IOException e1) {
 
+							}
+							service.shutdownNow();
+						}
+
+					}
+
+				};
+
+				service.scheduleAtFixedRate(users, 0, 5, TimeUnit.SECONDS);
+
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		}
-		
 	}
 }

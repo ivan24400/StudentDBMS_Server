@@ -12,10 +12,8 @@ public class Typh {
 
 	public static List<String> userList;
 	private static OS os;
-	private static final String certPath = System.getProperty("user.dir") + "\\cert\\server.pem";
-	private static final String certPassword = "server";
-	private static final String configFile = System.getProperty("user.dir")+"\\typh.cfg";
 
+	
 	public static void main(String[] arg) {
 
 		if (System.getProperty("os.name").substring(0, 6).toLowerCase().matches("windows*"))
@@ -36,9 +34,9 @@ public class Typh {
 			} else if(arg.length == 1){
 
 				if (!isServerRunning()){
-					File testtyph = new File(configFile);
+					File testtyph = new File(Credential.CONFIGURATION_FILE.value);
 					if(testtyph.exists() && testtyph.isFile())
-						startServer(configFile);
+						startServer(Credential.CONFIGURATION_FILE.value);
 					else
 						System.out.println("ERROR:\tNo configuration file found");
 				}else
@@ -124,8 +122,8 @@ public class Typh {
 	private static void serverStatus() {
 
 		try {
-			Process stats = Runtime.getRuntime().exec("mongo --ssl --sslPEMKeyFile " + certPath
-					+ " --sslPEMKeyPassword " + certPassword + " --sslAllowInvalidHostnames --eval db.serverStatus()");
+			Process stats = Runtime.getRuntime().exec("mongo --ssl --sslPEMKeyFile " + Credential.CERTIFICATE_PATH.value
+					+ " --sslPEMKeyPassword " + Credential.CERTIFICATE_PASSWORD.value + " --sslAllowInvalidHostnames --eval db.serverStatus()");
 			BufferedReader bf = new BufferedReader(new InputStreamReader(stats.getInputStream()));
 			//String line = null;
 			while ((bf.readLine()) != null) {
@@ -188,11 +186,13 @@ public class Typh {
 			userList = new ArrayList<String>();
 			Thread user = new Thread(new HeartForUsers());
 			Thread admin = new Thread(new HeartForAdmin());
-			Thread check = new Thread(new HeartCheckUP());
+			Thread check = new Thread(new CheckUser());
+			Thread networkTest = new Thread(new NetworkTest());
 
 			user.start();
 			admin.start();
 			check.start();
+			networkTest.start();
 
 			
 			System.out.println("INFO:\t Server Started Successfully");

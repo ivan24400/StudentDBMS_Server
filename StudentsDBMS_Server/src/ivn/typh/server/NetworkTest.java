@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class HeartCheckUP implements Runnable{
+public class NetworkTest implements Runnable{
 
 	@Override
 	public void run() {
 		try {
-			ServerSocket server = new ServerSocket(61002);
+			ServerSocket server = new ServerSocket(PortList.NETWORKTEST.port);
 			while(Typh.isServerRunning()){
 				Socket testClient = server.accept();
 				testClient.close();

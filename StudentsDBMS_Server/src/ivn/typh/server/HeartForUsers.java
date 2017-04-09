@@ -14,17 +14,11 @@ public class HeartForUsers implements Runnable {
 	private static ServerSocket server;
 	private Socket client;
 
-	public HeartForUsers() {
-		try {
-			server = new ServerSocket(61000);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 
 	@Override
 	public void run() {
 		try {
+			server = new ServerSocket(PortList.USER.port);
 			while (Typh.isServerRunning()) {
 				client = server.accept();
 				HeartForAdmin.message="__BEAT__";
@@ -35,6 +29,8 @@ public class HeartForUsers implements Runnable {
 				String user_t = (String) in.readObject();
 				if (!Typh.userList.contains(user_t))
 					Typh.userList.add(user_t);
+				else
+					HeartForAdmin.message="__EXISTS__";
 
 				ScheduledExecutorService serviceU = Executors.newSingleThreadScheduledExecutor();
 
