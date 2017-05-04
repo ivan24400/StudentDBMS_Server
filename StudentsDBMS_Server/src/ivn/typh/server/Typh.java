@@ -54,7 +54,7 @@ public class Typh {
 			}
 			break;
 		case "status":
-			if (!isServerRunning())
+			if (isServerRunning())
 				serverStatus();
 			else
 				System.out.println("ERROR:\t Server is not running");
@@ -122,12 +122,12 @@ public class Typh {
 	private static void serverStatus() {
 
 		try {
-			Process stats = Runtime.getRuntime().exec("mongo --ssl --sslPEMKeyFile " + Credential.CERTIFICATE_PATH.value
-					+ " --sslPEMKeyPassword " + Credential.CERTIFICATE_PASSWORD.value + " --sslAllowInvalidHostnames --eval db.serverStatus()");
+			Process stats = Runtime.getRuntime().exec("mongo --ssl --port 24000 --sslPEMKeyFile " + Credential.CERTIFICATE_PATH.value
+					+ " --sslPEMKeyPassword " + Credential.CERTIFICATE_PASSWORD.value + " --sslAllowInvalidHostnames --host localhost --eval db.serverStatus()");
 			BufferedReader bf = new BufferedReader(new InputStreamReader(stats.getInputStream()));
-			//String line = null;
-			while ((bf.readLine()) != null) {
-				//System.out.println(line);
+			String line = null;
+			while ((line = bf.readLine()) != null) {
+				System.out.println(line);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
