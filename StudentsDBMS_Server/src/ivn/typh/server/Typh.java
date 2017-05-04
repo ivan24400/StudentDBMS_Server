@@ -158,7 +158,7 @@ public class Typh {
 		try {
 
 			boolean isTyphServiceCreated = false;
-			Process process = Runtime.getRuntime().exec("cmd /c sc query state= all");
+			Process process = Runtime.getRuntime().exec("cmd /c sc query state= all | findstr Typh");
 			BufferedReader bf = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			String line = null;
 			while ((line = bf.readLine()) != null) {
@@ -170,12 +170,13 @@ public class Typh {
 			process.waitFor();
 
 			if (!isTyphServiceCreated) {
-				process = Runtime.getRuntime()
-						.exec("cmd /k mongod --config \"" + config
-								+ "\" --install --serviceName=typhserver --serviceDisplayName=Typh --logpath=\""
-								+ System.getProperty("user.dir") + "\\logs\\mongo.log\"");
 
-				Thread.sleep(4000);
+				process = Runtime.getRuntime().exec("cmd /k sc create typhserver  DisplayName= Typh binPath= \"mongod.exe --config \""+config+"\" --logpath=\""
+								+ System.getProperty("user.dir") + "\\logs\\mongo.log\" --service\"");
+				
+				
+				Runtime.getRuntime().exec("cmd /k sc description typhserver \"Typh Server Database - MongoDB\"");
+			Thread.sleep(4000);
 
 				process = Runtime.getRuntime().exec("cmd /c sc start typhserver");
 			} else
