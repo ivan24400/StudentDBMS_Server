@@ -4,6 +4,8 @@ public enum OS {
 	
 	LINUX,
 	
-	WINDOWS
+	WINDOWS,
+	
+	OSX
 
 }
