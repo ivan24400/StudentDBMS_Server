@@ -16,6 +16,9 @@ public class Typh {
 	
 	public static void main(String[] arg) {
 
+		System.setProperty("javax.net.ssl.trustStore","C:\\Program Files\\MongoDB\\Server\\3.4\\bin\\cert\\typh.ks");
+		System.setProperty("javax.net.ssl.trustStorePassword","keystore");
+		
 		if (System.getProperty("os.name").substring(0, 6).toLowerCase().matches("windows*"))
 			os = OS.WINDOWS;
 		else
