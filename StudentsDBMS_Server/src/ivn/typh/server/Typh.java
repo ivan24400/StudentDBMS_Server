@@ -18,9 +18,9 @@ public class Typh {
 
 	
 	public static void main(String[] arg) {
-
-		System.setProperty("javax.net.ssl.trustStore","C:\\Program Files\\MongoDB\\Server\\3.4\\bin\\cert\\typh.ks");
-		System.setProperty("javax.net.ssl.trustStorePassword","keystore");
+//
+//		System.setProperty("javax.net.ssl.trustStore",TrustStore.PATH.VALUE);
+//		System.setProperty("javax.net.ssl.trustStorePassword",TrustStore.PASSWD.VALUE);
 		
 		if (System.getProperty("os.name").substring(0, 6).toLowerCase().matches("windows*"))
 			os = OS.WINDOWS;
@@ -109,9 +109,6 @@ public class Typh {
 				e.printStackTrace();
 			}
 
-		} else if (os == OS.LINUX) {
-			
-			// For Linux
 		}
 		return exist;
 	}
@@ -132,8 +129,6 @@ public class Typh {
 	private static void startServer(String config) {
 		if (os == OS.WINDOWS)
 			startWServer(config);
-		else if (os == OS.LINUX)
-			startLServer(config);
 
 	}
 
@@ -163,20 +158,11 @@ public class Typh {
 			if (os == OS.WINDOWS) {
 				Runtime.getRuntime().exec("cmd /c sc stop typhserver");
 
-			} else if (os == OS.LINUX) {
-
-				// For Linux
-			}
+			} 
 			System.out.println("INFO:\t Server stopped successfully");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	
-	private static void startLServer(String config) {
-		
-		// For Linux
 	}
 
 	

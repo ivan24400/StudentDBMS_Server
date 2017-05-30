@@ -38,7 +38,6 @@ public class HeartForAdmin implements Runnable {
 					public void run() {
 
 						try {
-							System.out.println(Typh.userList.toString());
 							synchronized(Typh.userList){
 								out.writeObject(Typh.userList);
 							}
@@ -58,7 +57,7 @@ public class HeartForAdmin implements Runnable {
 
 				};
 
-				service.scheduleAtFixedRate(users, 0, 5, TimeUnit.SECONDS);
+				service.scheduleAtFixedRate(users, 0, 3, TimeUnit.SECONDS);
 
 			}
 		} catch (IOException e) {

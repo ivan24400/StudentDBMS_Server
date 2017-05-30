@@ -28,7 +28,6 @@ public class HeartForUsers implements Runnable {
 				ObjectOutputStream out = new ObjectOutputStream(client.getOutputStream());
 
 				String user_t = (String) in.readObject();
-				System.out.println(user_t);
 				synchronized (Typh.userList) {
 					if (!Typh.userList.contains(user_t))
 						Typh.userList.add(user_t);
@@ -56,7 +55,7 @@ public class HeartForUsers implements Runnable {
 
 				};
 
-				serviceU.scheduleAtFixedRate(pulse, 0, 5, TimeUnit.SECONDS);
+				serviceU.scheduleAtFixedRate(pulse, 0, 3, TimeUnit.SECONDS);
 			}
 		} catch (IOException | ClassNotFoundException e) {
 		}
