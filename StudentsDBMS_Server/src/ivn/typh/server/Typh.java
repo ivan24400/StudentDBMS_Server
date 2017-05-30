@@ -18,9 +18,9 @@ public class Typh {
 
 	
 	public static void main(String[] arg) {
-//
-//		System.setProperty("javax.net.ssl.trustStore",TrustStore.PATH.VALUE);
-//		System.setProperty("javax.net.ssl.trustStorePassword",TrustStore.PASSWD.VALUE);
+
+		System.setProperty("javax.net.ssl.trustStore",TrustStore.PATH.VALUE);
+		System.setProperty("javax.net.ssl.trustStorePassword",TrustStore.PASSWD.VALUE);
 		
 		if (System.getProperty("os.name").substring(0, 6).toLowerCase().matches("windows*"))
 			os = OS.WINDOWS;
