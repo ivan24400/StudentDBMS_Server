@@ -7,6 +7,9 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/*
+ * This class checks if the given user is already logged in or not.
+ */
 public class CheckUser implements Runnable{
 
 	@Override

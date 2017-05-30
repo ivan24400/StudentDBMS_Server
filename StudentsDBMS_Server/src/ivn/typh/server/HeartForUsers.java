@@ -9,11 +9,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/*
+ * This class keeps track of all the user logged in.
+ */
 public class HeartForUsers implements Runnable {
 
 	private static ServerSocket server;
 	private Socket client;
-
 
 	@Override
 	public void run() {
@@ -21,33 +23,34 @@ public class HeartForUsers implements Runnable {
 			server = new ServerSocket(PortList.USER.port);
 			while (Typh.isServerRunning()) {
 				client = server.accept();
-				HeartForAdmin.message="__BEAT__";
+				HeartForAdmin.message = "__BEAT__";
 				ObjectInputStream in = new ObjectInputStream(client.getInputStream());
 				ObjectOutputStream out = new ObjectOutputStream(client.getOutputStream());
-	
 
 				String user_t = (String) in.readObject();
-				if (!Typh.userList.contains(user_t))
-					Typh.userList.add(user_t);
-				else
-					HeartForAdmin.message="__EXISTS__";
-
+				System.out.println(user_t);
+				synchronized (Typh.userList) {
+					if (!Typh.userList.contains(user_t))
+						Typh.userList.add(user_t);
+					else
+						client.close();
+				}
 				ScheduledExecutorService serviceU = Executors.newSingleThreadScheduledExecutor();
 
 				Runnable pulse = new Runnable() {
 					@Override
 					public void run() {
 						try {
-						
-						out.writeObject(HeartForAdmin.message);
-						out.flush();
 
-							} catch (IOException e) {
-								if (Typh.userList.contains(user_t))
-									Typh.userList.remove(user_t);
-							}
+							out.writeObject(HeartForAdmin.message);
+							out.flush();
 
-						HeartForAdmin.message="__BEAT__";
+						} catch (Exception e) {
+							if (Typh.userList.contains(user_t))
+								Typh.userList.remove(user_t);
+						}
+
+						HeartForAdmin.message = "__BEAT__";
 
 					}
 
@@ -55,7 +58,8 @@ public class HeartForUsers implements Runnable {
 
 				serviceU.scheduleAtFixedRate(pulse, 0, 5, TimeUnit.SECONDS);
 			}
-		} catch (IOException | ClassNotFoundException e) {	}
+		} catch (IOException | ClassNotFoundException e) {
+		}
 	}
 
 }

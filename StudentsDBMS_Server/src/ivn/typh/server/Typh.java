@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/*
+ * This class provides command line interface to the application.
+ */
 public class Typh {
 
 	public static List<String> userList;
@@ -86,6 +89,10 @@ public class Typh {
 		}
 	}
 
+	/*
+	 * This method checks whether the Database is running or not.
+	 * @return A boolean corresponding to state of database process.
+	 */
 	static boolean isServerRunning() {
 		boolean exist = false;
 		if (os == OS.WINDOWS) {
@@ -109,11 +116,19 @@ public class Typh {
 		return exist;
 	}
 
+	/*
+	 * This method restarts the application
+	 * @param config The configuration to load the application.
+	 */
 	private static void restartServer(String config) {
 		stopServer();
 		startServer(config);
 	}
 
+	/*
+	 * This method starts the database application.
+	 * @param config The configuration to load the application.
+	 */
 	private static void startServer(String config) {
 		if (os == OS.WINDOWS)
 			startWServer(config);
@@ -122,6 +137,9 @@ public class Typh {
 
 	}
 
+	/*
+	 * This method retrieves status information of the database.
+	 */
 	private static void serverStatus() {
 
 		try {
@@ -137,6 +155,9 @@ public class Typh {
 		}
 	}
 
+	/*
+	 * This method stops the database application.
+	 */
 	private static void stopServer() {
 		try {
 			if (os == OS.WINDOWS) {
@@ -158,6 +179,11 @@ public class Typh {
 		// For Linux
 	}
 
+	
+	/*
+	 * This method is used to start db application on windows platform.
+	 * @param config The configuration file.
+	 */
 	private static void startWServer(String config) {
 		try {
 
@@ -176,11 +202,12 @@ public class Typh {
 			if (!isTyphServiceCreated) {
 
 				process = Runtime.getRuntime().exec("cmd /k sc create typhserver  DisplayName= Typh binPath= \"mongod.exe --config \""+config+"\" --logpath=\""
-								+ System.getProperty("user.dir") + "\\logs\\mongo.log\" --service\"");
+								+ System.getProperty("user.dir") + "\\mongoLogs\\mongo.log\" --service\"");
 				
+				process.waitFor();
 				
-				Runtime.getRuntime().exec("cmd /k sc description typhserver \"Typh Server Database - MongoDB\"");
-			Thread.sleep(4000);
+				process=Runtime.getRuntime().exec("cmd /k sc description typhserver \"Typh Server Database - MongoDB\"");
+				process.waitFor();
 
 				process = Runtime.getRuntime().exec("cmd /c sc start typhserver");
 			} else
@@ -193,15 +220,24 @@ public class Typh {
 			Thread admin = new Thread(new HeartForAdmin());
 			Thread check = new Thread(new CheckUser());
 			Thread networkTest = new Thread(new NetworkTest());
+			
+			user.setDaemon(true);
+			admin.setDaemon(true);
+			check.setDaemon(true);
+			networkTest.setDaemon(true);
 
 			user.start();
 			admin.start();
 			check.start();
 			networkTest.start();
+		
 
-			
 			System.out.println("INFO:\t Server Started Successfully");
-
+			
+			while(Typh.isServerRunning()){
+				Thread.sleep(2000);
+			}
+			
 		} catch (IOException | InterruptedException e) {
 			e.printStackTrace();
 		}

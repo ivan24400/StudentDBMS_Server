@@ -9,6 +9,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/*
+ * This class provides information for admin account when logged in.
+ */
 public class HeartForAdmin implements Runnable {
 
 	private static ServerSocket server;
@@ -24,7 +27,7 @@ public class HeartForAdmin implements Runnable {
 			while (Typh.isServerRunning()) {
 
 				socket = server.accept();
-				System.out.println(socket.getRemoteSocketAddress());
+				
 				ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 				ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 				ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
@@ -35,8 +38,12 @@ public class HeartForAdmin implements Runnable {
 					public void run() {
 
 						try {
-							out.writeObject(Typh.userList);
+							System.out.println(Typh.userList.toString());
+							synchronized(Typh.userList){
+								out.writeObject(Typh.userList);
+							}
 							out.flush();
+							out.reset();
 							message = (String) in.readObject();
 						} catch (IOException | ClassNotFoundException e) {
 							try {

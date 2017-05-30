@@ -1,5 +1,8 @@
 package ivn.typh.server;
 
+/*
+ * This enum consists of port numbers used by the server application.
+ */
 public enum PortList {
 
 	USER(61000),

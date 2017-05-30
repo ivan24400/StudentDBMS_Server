@@ -1,5 +1,8 @@
 package ivn.typh.server;
 
+/*
+ * This enum stores path of ssl and mongodb configuration files.
+ */
 public enum Credential {
 
 	CERTIFICATE_PATH(System.getProperty("user.dir") + "\\cert\\server.pem"),
