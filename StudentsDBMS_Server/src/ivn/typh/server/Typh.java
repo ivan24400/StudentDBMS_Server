@@ -32,6 +32,7 @@ public class Typh {
 		//  Setup logger.
 		
 		tlog = Logger.getLogger("Typh Logger");
+		tlog.setUseParentHandlers(false);
 		try {
 			(new File(Resources.LOGPATH.value)).getParentFile().mkdirs();
 			FileHandler logfile = new FileHandler(Resources.LOGPATH.value);
@@ -194,6 +195,8 @@ public class Typh {
 
 			} 
 			Typh.tlog.log(Level.INFO,"Server stopped successfully");
+			System.out.println("INFO:\tServer stopped successfully.");
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -253,11 +256,14 @@ public class Typh {
 		
 
 			Typh.tlog.log(Level.INFO,"Server started successfully.");
+			System.out.println("INFO:\tServer started successfully.");
 		
 			Runtime.getRuntime().addShutdownHook(new Thread(){
 				public void run(){
 					stopServer();
-					Typh.tlog.log(Level.INFO,"INFO:\t Server terminated.");
+					Typh.tlog.log(Level.INFO,"Server terminated.");
+					System.out.println("INFO:\tServer terminated.");
+
 				}
 			});
 		} catch (IOException | InterruptedException e) {
