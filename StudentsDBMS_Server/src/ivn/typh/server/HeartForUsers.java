@@ -31,7 +31,7 @@ public class HeartForUsers implements Runnable {
 				String user_t = (String) in.readObject();
 				synchronized (Typh.userList) {
 					if (!Typh.userList.contains(user_t)){
-						Typh.tlog.log(Level.INFO, user_t+" logged in.");
+						Typh.tlog.log(Level.INFO, user_t+"["+client.getRemoteSocketAddress()+"] logged in.");
 						Typh.userList.add(user_t);
 					}else
 						client.close();
