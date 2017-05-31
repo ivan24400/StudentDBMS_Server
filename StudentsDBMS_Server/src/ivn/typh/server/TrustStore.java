@@ -8,7 +8,7 @@ import java.io.File;
 
 public enum TrustStore {
 
-	PATH(System.getProperty("user.dir")+File.separator+"typh.ks"),
+	PATH(System.getProperty("user.dir")+File.separator+"sys"+File.separator+"typh.ks"),
 	PASSWD("keystore");
 	
 	String VALUE;

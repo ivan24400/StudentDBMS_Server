@@ -185,10 +185,11 @@ public class Typh {
 			}
 			process.waitFor();
 
+
 			if (!isTyphServiceCreated) {
 
 				process = Runtime.getRuntime().exec("cmd /k sc create typhserver  DisplayName= Typh binPath= \"mongod.exe --config \""+config+"\" --logpath=\""
-								+ System.getProperty("user.dir") + "\\mongoLogs\\mongo.log\" --service\"");
+								+ System.getProperty("user.dir") + "\\sys\\mongoLogs\\mongo.log\" --service\"");
 				
 				process.waitFor();
 				
@@ -199,7 +200,6 @@ public class Typh {
 			} else
 				process = Runtime.getRuntime().exec("cmd /c sc start typhserver");
 			
-			process.waitFor();
 			
 			userList = new ArrayList<String>();
 			Thread user = new Thread(new HeartForUsers());
@@ -207,23 +207,19 @@ public class Typh {
 			Thread check = new Thread(new CheckUser());
 			Thread networkTest = new Thread(new NetworkTest());
 			
-			user.setDaemon(true);
-			admin.setDaemon(true);
-			check.setDaemon(true);
-			networkTest.setDaemon(true);
-
 			user.start();
 			admin.start();
 			check.start();
 			networkTest.start();
 		
 
-			System.out.println("INFO:\t Server Started Successfully");
-			
-			while(Typh.isServerRunning()){
-				Thread.sleep(2000);
-			}
-			
+			System.out.println("INFO:\t Server Started Successfully.");
+		
+			Runtime.getRuntime().addShutdownHook(new Thread(){
+				public void run(){
+					System.out.println("INFO:\t Server terminated.");
+				}
+			});
 		} catch (IOException | InterruptedException e) {
 			e.printStackTrace();
 		}
