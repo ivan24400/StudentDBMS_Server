@@ -7,6 +7,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /*
  * This class provides command line interface to the application.
@@ -15,18 +19,44 @@ public class Typh {
 
 	public static List<String> userList;
 	private static OS os;
-
+	public static Logger tlog;
 	
 	public static void main(String[] arg) {
 
+		//	Setup JVM options for trust store and log.
+		
 		System.setProperty("javax.net.ssl.trustStore",TrustStore.PATH.VALUE);
 		System.setProperty("javax.net.ssl.trustStorePassword",TrustStore.PASSWD.VALUE);
+		System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS %4$-9s [%2$-50s]  %5$s%6$s%n");
+		
+		//  Setup logger.
+		
+		tlog = Logger.getLogger("Typh Logger");
+		try {
+			(new File(Resources.LOGPATH.value)).getParentFile().mkdirs();
+			FileHandler logfile = new FileHandler(Resources.LOGPATH.value);
+			logfile.setFormatter(new SimpleFormatter());
+			tlog.addHandler(logfile);
+		} catch (SecurityException | IOException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+		
+		tlog.log(Level.INFO, "Starting Typh Server ...");
+		
+		//  Determine the platform (although runs only on windows)
 		
 		if (System.getProperty("os.name").substring(0, 6).toLowerCase().matches("windows*"))
 			os = OS.WINDOWS;
 		else
 			os = OS.LINUX;
 
+		if (arg.length == 0 || arg.length >3){
+			System.out.println("\nERROR:\tInvalid Number of Arguments !");
+			displayHelp();
+			System.exit(-1);
+		}
+		
 		switch (arg[0]) {
 		case "start":
 			if (arg.length == 3) {
@@ -40,9 +70,9 @@ public class Typh {
 			} else if(arg.length == 1){
 
 				if (!isServerRunning()){
-					File testtyph = new File(Credential.CONFIGURATION_FILE.value);
+					File testtyph = new File(Resources.CONFIGURATION_FILE.value);
 					if(testtyph.exists() && testtyph.isFile())
-						startServer(Credential.CONFIGURATION_FILE.value);
+						startServer(Resources.CONFIGURATION_FILE.value);
 					else
 						System.out.println("ERROR:\tNo configuration file found");
 				}else
@@ -66,19 +96,7 @@ public class Typh {
 				System.out.println("ERROR:\t Server is not running");
 			break;
 		case "help":
-			int numberOfCharacters = 85;
-			char[] character = new char[numberOfCharacters];
-			Arrays.fill(character, '=');
-
-			System.out.println("\n" + new String(character));
-			System.out.println("\n\tTyph™ Server ");
-			System.out.printf("\n[1] %-25s : %s", "start", "To start a server with config file in same directory");
-			System.out.printf("\n[] %25s : %s", "start config <file>", "<file> is a configuration file. Provide full path");
-			System.out.printf("\n[2] %-25s : %s", "stop-server", "stop the server");
-			System.out.printf("\n[3] %-25s : %s", "status", "get information about the server");
-			System.out.printf("\n[4] %-25s : %s", "restart", "restart the server");
-			System.out.printf("\n[5] %-25s : %s", "help", "print this message");
-			System.out.println("\n\n" + new String(character));
+			displayHelp();
 
 			break;
 		case "restart":
@@ -87,6 +105,22 @@ public class Typh {
 		default:
 			System.out.println("ERROR: Invalid argument");
 		}
+	}
+
+	static void displayHelp() {
+		int numberOfCharacters = 85;
+		char[] character = new char[numberOfCharacters];
+		Arrays.fill(character, '=');
+
+		System.out.println("\n" + new String(character));
+		System.out.println("\n\tTyph Server ");
+		System.out.printf("\n[1] %-25s : %s", "start", "To start a server with config file in same directory");
+		System.out.printf("\n    %-25s : %s", "= start config <file>", "<file> is a configuration file. Provide full path");
+		System.out.printf("\n[2] %-25s : %s", "stop-server", "stop the server");
+		System.out.printf("\n[3] %-25s : %s", "status", "get information about the server");
+		System.out.printf("\n[4] %-25s : %s", "restart", "restart the server");
+		System.out.printf("\n[5] %-25s : %s", "help", "print this message");
+		System.out.println("\n\n" + new String(character));
 	}
 
 	/*
@@ -138,8 +172,8 @@ public class Typh {
 	private static void serverStatus() {
 
 		try {
-			Process stats = Runtime.getRuntime().exec("mongo --ssl --port 24000 --sslPEMKeyFile " + Credential.CERTIFICATE_PATH.value
-					+ " --sslPEMKeyPassword " + Credential.CERTIFICATE_PASSWORD.value + " --sslAllowInvalidHostnames --host localhost --eval db.serverStatus()");
+			Process stats = Runtime.getRuntime().exec("mongo --ssl --port 24000 --sslPEMKeyFile " + Resources.CERTIFICATE_PATH.value
+					+ " --sslPEMKeyPassword " + Resources.CERTIFICATE_PASSWORD.value + " --sslAllowInvalidHostnames --host localhost --eval db.serverStatus()");
 			BufferedReader bf = new BufferedReader(new InputStreamReader(stats.getInputStream()));
 			String line = null;
 			while ((line = bf.readLine()) != null) {
@@ -159,7 +193,7 @@ public class Typh {
 				Runtime.getRuntime().exec("cmd /c sc stop typhserver");
 
 			} 
-			System.out.println("INFO:\t Server stopped successfully");
+			Typh.tlog.log(Level.INFO,"Server stopped successfully");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -172,7 +206,7 @@ public class Typh {
 	 */
 	private static void startWServer(String config) {
 		try {
-
+			displayLoadingMessage();
 			boolean isTyphServiceCreated = false;
 			Process process = Runtime.getRuntime().exec("cmd /c sc query state= all | findstr Typh");
 			BufferedReader bf = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -199,29 +233,54 @@ public class Typh {
 				process = Runtime.getRuntime().exec("cmd /c sc start typhserver");
 			} else
 				process = Runtime.getRuntime().exec("cmd /c sc start typhserver");
-			
-			
+					
 			userList = new ArrayList<String>();
+			
 			Thread user = new Thread(new HeartForUsers());
 			Thread admin = new Thread(new HeartForAdmin());
 			Thread check = new Thread(new CheckUser());
 			Thread networkTest = new Thread(new NetworkTest());
 			
+			check.setDaemon(true);
+			networkTest.setDaemon(true);	
+			
 			user.start();
 			admin.start();
 			check.start();
 			networkTest.start();
+			
+			
 		
 
-			System.out.println("INFO:\t Server Started Successfully.");
+			Typh.tlog.log(Level.INFO,"Server started successfully.");
 		
 			Runtime.getRuntime().addShutdownHook(new Thread(){
 				public void run(){
-					System.out.println("INFO:\t Server terminated.");
+					stopServer();
+					Typh.tlog.log(Level.INFO,"INFO:\t Server terminated.");
 				}
 			});
 		} catch (IOException | InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static void displayLoadingMessage() {
+		System.out.print("\nInitializing ...  ");
+		for(int i=0;i<4;i++){
+			try{
+				System.out.printf("\b-");
+				Thread.sleep(400);
+				System.out.printf("\b\\");
+				Thread.sleep(400);
+				System.out.printf("\b|");
+				Thread.sleep(400);
+				System.out.printf("\b/");
+				Thread.sleep(400);
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+		}
+		System.out.print("\n");
 	}
 }

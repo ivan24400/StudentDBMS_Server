@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 /*
  * This class keeps track of all the user logged in.
@@ -29,9 +30,10 @@ public class HeartForUsers implements Runnable {
 
 				String user_t = (String) in.readObject();
 				synchronized (Typh.userList) {
-					if (!Typh.userList.contains(user_t))
+					if (!Typh.userList.contains(user_t)){
+						Typh.tlog.log(Level.INFO, user_t+" logged in.");
 						Typh.userList.add(user_t);
-					else
+					}else
 						client.close();
 				}
 				ScheduledExecutorService serviceU = Executors.newSingleThreadScheduledExecutor();
@@ -45,8 +47,10 @@ public class HeartForUsers implements Runnable {
 							out.flush();
 
 						} catch (Exception e) {
-							if (Typh.userList.contains(user_t))
+							if (Typh.userList.contains(user_t)){
 								Typh.userList.remove(user_t);
+								Typh.tlog.log(Level.INFO, user_t + " logged out.");
+							}
 						}
 
 						HeartForAdmin.message = "__BEAT__";

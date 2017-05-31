@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 /*
  * This class provides information for admin account when logged in.
@@ -27,7 +28,7 @@ public class HeartForAdmin implements Runnable {
 			while (Typh.isServerRunning()) {
 
 				socket = server.accept();
-				
+				Typh.tlog.log(Level.INFO, "admin logged in.");
 				ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 				ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 				ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
@@ -46,9 +47,10 @@ public class HeartForAdmin implements Runnable {
 							message = (String) in.readObject();
 						} catch (IOException | ClassNotFoundException e) {
 							try {
+								Typh.tlog.log(Level.INFO, "admin logged out.");
 								socket.close();
 							} catch (IOException e1) {
-
+								e1.printStackTrace();
 							}
 							service.shutdownNow();
 						}

@@ -3,6 +3,7 @@ package ivn.typh.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Level;
 
 /*
  * This class provides simple connection for any client to first check if the server
@@ -16,6 +17,7 @@ public class NetworkTest implements Runnable{
 			ServerSocket server = new ServerSocket(PortList.NETWORKTEST.port);
 			while(Typh.isServerRunning()){
 				Socket testClient = server.accept();
+				Typh.tlog.log(Level.WARNING,testClient.getRemoteSocketAddress()+" is trying to connect !");
 				testClient.close();
 			}
 			server.close();
