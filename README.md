@@ -1,7 +1,7 @@
 # StudentDBMS_Server
 Server program for student dbms
 
-How to setup:
+# How to setup:
  1. Create a folder "typhserver".
  2. CD to typhserver.
  3. Create another folder "sys".
@@ -17,7 +17,7 @@ How to setup:
  6. Double Click "run.bat" to run program.
  
  
-typh.cfg:
+# typh.cfg:
 
   This file is used incase a separate configuration file is not provided from command line.
   You may need to change the path of PEM file inside the configuration file.
