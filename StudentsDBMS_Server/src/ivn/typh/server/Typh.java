@@ -49,8 +49,13 @@ public class Typh {
 		
 		if (System.getProperty("os.name").substring(0, 6).toLowerCase().matches("windows*"))
 			os = OS.WINDOWS;
-		else
-			os = OS.LINUX;
+		else{
+			System.out.println("\nERROR:\tOperating System Not Supported !");
+			System.exit(-1);
+
+		}
+		
+		// Determine arguments validity
 
 		if (arg.length == 0 || arg.length >3){
 			System.out.println("\nERROR:\tInvalid Number of Arguments !");
@@ -70,24 +75,19 @@ public class Typh {
 
 			} else if(arg.length == 1){
 
-				if (!isServerRunning()){
-					File testtyph = new File(Resources.CONFIGURATION_FILE.value);
-					if(testtyph.exists() && testtyph.isFile())
-						startServer(Resources.CONFIGURATION_FILE.value);
-					else
-						System.out.println("ERROR:\tNo configuration file found");
-				}else
+				if (!isServerRunning())
+					startServer();
+				else
 					System.out.println("ERROR:\t Server is already running");
 
-			}else {
-				System.out.println("ERROR: Invalid number of arguments\n Use \'help\' to list all options");
-			}
+			}else 
+				System.out.println("ERROR:\tInvalid number of arguments\n Use \'help\' to list all options");
 			break;
 		case "stop":
 			if (isServerRunning()) {
 				stopServer();
 			} else {
-				System.out.println("ERROR:\t No server process found!");
+				System.out.println("ERROR:\tNo server process found!");
 			}
 			break;
 		case "status":
@@ -101,7 +101,7 @@ public class Typh {
 
 			break;
 		case "restart":
-			restartServer(arg[1]);
+			restartServer();
 			break;
 		default:
 			System.out.println("ERROR: Invalid argument");
@@ -116,8 +116,8 @@ public class Typh {
 		System.out.println("\n" + new String(character));
 		System.out.println("\n\tTyph Server ");
 		System.out.printf("\n[1] %-25s : %s", "start", "To start a server with config file in same directory");
-		System.out.printf("\n    %-25s : %s", "= start config <file>", "<file> is a configuration file. Provide full path");
-		System.out.printf("\n[2] %-25s : %s", "stop-server", "stop the server");
+		System.out.printf("\n    %-25s : %s", "> start config <file>", "<file> is a configuration file. Provide full path");
+		System.out.printf("\n[2] %-25s : %s", "stop", "stop the server");
 		System.out.printf("\n[3] %-25s : %s", "status", "get information about the server");
 		System.out.printf("\n[4] %-25s : %s", "restart", "restart the server");
 		System.out.printf("\n[5] %-25s : %s", "help", "print this message");
@@ -152,9 +152,9 @@ public class Typh {
 	 * This method restarts the application
 	 * @param config The configuration to load the application.
 	 */
-	private static void restartServer(String config) {
+	private static void restartServer() {
 		stopServer();
-		startServer(config);
+		startServer();
 	}
 
 	/*
@@ -164,6 +164,30 @@ public class Typh {
 	private static void startServer(String config) {
 		if (os == OS.WINDOWS)
 			startWServer(config);
+
+	}
+	
+	/*
+	 * This method loads the default configuration file 'typh.cfg'.
+	 */
+	private static void startServer(){
+		if (os == OS.WINDOWS){
+			File testtyph = new File(Resources.CONFIGURATION_FILE.value);
+			if(!testtyph.exists() && testtyph.isFile()){
+				System.out.println("ERROR:\tNo configuration file found\n\tCreate a configuration file 'typh.cfg' and place it in 'sys' directory.");
+				System.exit(-1);
+			}
+			testtyph = new File(System.getProperty("user.dir")+File.separator+"sys"+File.separator+"mongoLogs"+File.separator+"mongo.log");
+			if(!testtyph.exists()){
+				testtyph.getParentFile().mkdirs();
+				try {
+					testtyph.createNewFile();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			startServer(Resources.CONFIGURATION_FILE.value);
+		}
 
 	}
 
@@ -225,14 +249,15 @@ public class Typh {
 
 			if (!isTyphServiceCreated) {
 
+
 				process = Runtime.getRuntime().exec("cmd /k sc create typhserver  DisplayName= Typh binPath= \"mongod.exe --config \""+config+"\" --logpath=\""
 								+ System.getProperty("user.dir") + "\\sys\\mongoLogs\\mongo.log\" --service\"");
 				
-				process.waitFor();
+				Thread.sleep(2000);
 				
 				process=Runtime.getRuntime().exec("cmd /k sc description typhserver \"Typh Server Database - MongoDB\"");
+				
 				process.waitFor();
-
 				process = Runtime.getRuntime().exec("cmd /c sc start typhserver");
 			} else
 				process = Runtime.getRuntime().exec("cmd /c sc start typhserver");
@@ -253,11 +278,12 @@ public class Typh {
 			networkTest.start();
 			
 			
-		
 
 			Typh.tlog.log(Level.INFO,"Server started successfully.");
 			System.out.println("INFO:\tServer started successfully.");
 		
+			// Create shutdown hook
+			
 			Runtime.getRuntime().addShutdownHook(new Thread(){
 				public void run(){
 					stopServer();
@@ -266,6 +292,8 @@ public class Typh {
 
 				}
 			});
+			
+			
 		} catch (IOException | InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -273,7 +301,7 @@ public class Typh {
 
 	private static void displayLoadingMessage() {
 		System.out.print("\nInitializing ...  ");
-		for(int i=0;i<4;i++){
+		for(int i=0;i<2;i++){
 			try{
 				System.out.printf("\b-");
 				Thread.sleep(400);
