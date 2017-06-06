@@ -13,6 +13,8 @@ Server program for student dbms
     
     c. typh.ks    -> The keystore file.
     
+    d. typhserver.jar -> The compiled project which is exported to a runnable jar.
+    
  5. Place "run.bat" file in "typhserver" folder but outside "sys".
  6. Double Click "run.bat" to run program.
  
